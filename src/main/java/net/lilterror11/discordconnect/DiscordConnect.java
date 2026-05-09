@@ -1,6 +1,7 @@
 package net.lilterror11.discordconnect;
 
 import com.mojang.brigadier.CommandDispatcher;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -28,6 +29,8 @@ import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sound.sampled.Port;
+import java.awt.*;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,6 +71,7 @@ public class DiscordConnect implements ModInitializer {
             LOGGER.warn("A Token of the correct length has not been provided, Discord connection is disabled");
         } else {
             ServerLifecycleEvents.SERVER_STARTED.register(this::onStart);
+            ServerLifecycleEvents.SERVER_STOPPED.register(this::onStop);
             ServerMessageEvents.CHAT_MESSAGE.register(EventListeners::onChatMessage);
             ServerPlayerEvents.JOIN.register(EventListeners::onPlayerJoin);
             ServerPlayerEvents.LEAVE.register(EventListeners::onPlayerLeave);
@@ -87,6 +91,7 @@ public class DiscordConnect implements ModInitializer {
         return new ConditionalValue<>();
     }
 
+
     // Runs when server starts
     public void onStart(MinecraftServer minecraftServer) {
         server = minecraftServer; // Save the server for latter use
@@ -105,11 +110,29 @@ public class DiscordConnect implements ModInitializer {
             SetupDiscord.initialize(); // Initializing
             bot = botBuilder.build();
             bot.awaitReady();
+
             loadConfig();
             Command.initializeCommands(bot);
+
+            EmbedBuilder embed = new EmbedBuilder()
+                    .setTitle("Server has started!")
+                    .setColor(Color.green);
+
+            publicChannel.channel.sendMessageEmbeds(embed.build()).queue();
+            consoleChannel.channel.sendMessageEmbeds(embed.build()).queue();
         } catch (Exception e) {
             LOGGER.error("Unable to connect to discord: " + e.getMessage());
         }
+    }
+
+    public void onStop(MinecraftServer minecraftServer) {
+        EmbedBuilder embed = new EmbedBuilder()
+            .setTitle("Server has stopped!!")
+            .setColor(Color.red);
+
+        publicChannel.channel.sendMessageEmbeds(embed.build()).queue();
+        consoleChannel.channel.sendMessageEmbeds(embed.build()).queue();
+        bot.shutdown();
     }
 
     public static ServerCommandSource newDiscordCommandSource(User user) {

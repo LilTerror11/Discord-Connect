@@ -25,7 +25,6 @@ public class Minecraft {
         }
         try {
             DiscordConnect.server.getCommandManager().getDispatcher().execute("kick " + event.getOption("player").getAsString() + reason, DiscordConnect.getUserCommandSource(event.getUser()));
-            event.reply("Command executed successfully.").queue();
         } catch (CommandSyntaxException e) {
             event.reply(e.getMessage()).queue();
             DiscordConnect.LOGGER.error(e.getMessage());

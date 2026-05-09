@@ -1,21 +1,25 @@
 package net.lilterror11.discordconnect.commands;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.lilterror11.ConditionalValue;
 import net.lilterror11.discordconnect.DiscordConnect;
 import net.lilterror11.discordconnect.Format;
+import net.lilterror11.discordconnect.config.ConfigManager;
+import net.lilterror11.discordconnect.config.ModConfig;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class ConfigCommands {
     public static void initializeCommands() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
-                    literal("config")
+                    literal("config").requires(source -> source.hasPermissionLevel(2))
                             .executes(context -> {
                                 context.getSource().sendFeedback(() -> Text.literal("""
                                         Subcommands:
@@ -24,6 +28,33 @@ public class ConfigCommands {
                                 return 1;
                             })
                     .then(literal("reloadConfig").executes(ConfigCommands::reloadConfig))
+                    .then(literal("set")
+                            .then(literal("minecraft")
+                                .then(literal("minecraftSpecialFormating")
+                                        .then(argument("value", BoolArgumentType.bool())
+                                        .executes(context -> {
+                                            boolean value = BoolArgumentType.getBool(context, "value");
+                                            ModConfig config = ConfigManager.loadConfig();
+                                            config.minecraft.minecraftSpecialFormating = value;
+                                            ConfigManager.saveConfig(config);
+                                            return 1;
+                                        }))
+                                )
+                            )
+                    )
+                    .then(literal("get")
+                            .then(literal("minecraft")
+                                .then(literal("minecraftSpecialFormating")
+                                        .executes(context -> {
+                                            boolean value = BoolArgumentType.getBool(context, "value");
+                                            ModConfig config = ConfigManager.loadConfig();
+                                            config.minecraft.minecraftSpecialFormating = value;
+                                            ConfigManager.saveConfig(config);
+                                            return 1;
+                                        })
+                                )
+                            )
+                    )
             );
         });
     }

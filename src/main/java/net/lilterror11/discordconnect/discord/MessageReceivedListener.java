@@ -3,9 +3,11 @@ package net.lilterror11.discordconnect.discord;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.lilterror11.discordconnect.DiscordConnect;
+import net.lilterror11.discordconnect.config.DiscordConfig;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Text;
@@ -21,6 +23,11 @@ public class MessageReceivedListener extends ListenerAdapter {
 
         if (author.isBot()) {
             return; // Don't want to spam
+        }
+
+        if (!DiscordConnect.CONFIG.minecraft.minecraftSpecialFormating && content.contains("§")) {
+            content = content.replaceAll("§", "§ms§r");
+            event.getMessage().addReaction(Emoji.fromUnicode("\u2049\uFE0F")).queue();
         }
 
         boolean pass = false;
